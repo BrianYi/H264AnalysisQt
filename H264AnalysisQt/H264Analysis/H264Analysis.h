@@ -135,14 +135,6 @@ public:
 	 */
 	STATUS ueDecode(char *egcData, size_t len, UINT32 *codeNum, unsigned int *egcSize);		///< 解码无符号整型指数哥伦布编码
 
-public: // 当测试完毕后，需改为protected
-	/**
-	 * 描述:	获取下一个包含I帧的Nalu(若前面有SPS,PPS或SEI则会将他们与I帧一起打包), 并将数据放入参数naluData传出，完成后文件指针指向下一个Nalu的开头(naluData为空时，不获取数据，只返回长度)
-	 * 返回值:	size_t => Nalu长度（包含startCode）
-	 * 参数: 	char * * naluData(out: 返回Nalu, 包含startCode, 为空时不获取数据)
-	 */
-	size_t nextInalu(char **naluData = NULL);
-
 	/**
 	 * 描述:	读取接下来的len个字节
 	 * 返回值:	size_t => 成功读取的字节数
@@ -150,6 +142,13 @@ public: // 当测试完毕后，需改为protected
 	 * 参数: 	int len(in: 读取字节的长度)
 	 */
 	size_t readNextBytes(char *p, int len);///< 读取len个字节
+private: // 当测试完毕后，需改为protected
+	/**
+	 * 描述:	获取下一个包含I帧的Nalu(若前面有SPS,PPS或SEI则会将他们与I帧一起打包), 并将数据放入参数naluData传出，完成后文件指针指向下一个Nalu的开头(naluData为空时，不获取数据，只返回长度)
+	 * 返回值:	size_t => Nalu长度（包含startCode）
+	 * 参数: 	char * * naluData(out: 返回Nalu, 包含startCode, 为空时不获取数据)
+	 */
+	size_t nextInalu(char **naluData = NULL);
 
 	/**
 	 * 描述:	检查缓冲区的数据是否还够，若不够则再次读取BUFSIZE字节的文件内容

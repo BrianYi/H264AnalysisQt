@@ -1155,7 +1155,40 @@ STATUS H264Analysis::ueDecode(char *egcData, size_t len, UINT32 *codeNum, unsign
 }
 
 //************************************
-// 函数名:	H264Analysis::next_I_Nalu
+// 函数名:	H264Analysis::readNextBytes
+// 描述:	读取接下来的len个字节
+// 返回值:	size_t => 成功读取的字节数
+// 参数: 	char * p(out: 传出读取的字节数据，需要调用者分配和释放内存)
+// 参数: 	int len(in: 读取字节的长度)
+// 日期: 	2016/05/18
+// 作者: 	YJZ
+// 修改记录:
+//************************************
+size_t H264Analysis::readNextBytes( char *p, int len)
+{
+#ifdef TIME_TEST
+	DWORD time_beg = GetTickCount();
+#endif
+	size_t readLen = len;
+	size_t filePtrPos = m_fileStream.tellg();
+	if (filePtrPos + len > m_len)
+	{
+		readLen = m_len - filePtrPos;
+		m_fileStream.read(p, readLen);
+	}
+	else
+		m_fileStream.read(p, len);
+	
+#ifdef TIME_TEST
+	DWORD time_diff = GetTickCount() - time_beg;
+	m_debugFileStream << "readNextBytes " << time_diff << endl;
+#endif
+
+	return readLen;
+}
+
+//************************************
+// 函数名:	H264Analysis::nextInalu
 // 描述:	获取下一个包含I帧的Nalu(若前面有SPS,PPS或SEI则会将他们与I帧一起打包), 并将数据放入参数naluData传出，完成后文件指针指向下一个Nalu的开头(naluData为空时，不获取数据，只返回长度)
 // 返回值:	size_t => Nalu长度（包含startCode）
 // 参数: 	char * * naluData(out: 返回Nalu, 包含startCode, 为空时不获取数据)
@@ -1286,40 +1319,6 @@ size_t H264Analysis::nextInalu( char **naluData /*= NULL*/ )
 	}
 
 	return Failed;
-}
-
-
-//************************************
-// 函数名:	H264Analysis::readNextBytes
-// 描述:	读取接下来的len个字节
-// 返回值:	size_t => 成功读取的字节数
-// 参数: 	char * p(out: 传出读取的字节数据，需要调用者分配和释放内存)
-// 参数: 	int len(in: 读取字节的长度)
-// 日期: 	2016/05/18
-// 作者: 	YJZ
-// 修改记录:
-//************************************
-size_t H264Analysis::readNextBytes( char *p, int len)
-{
-#ifdef TIME_TEST
-	DWORD time_beg = GetTickCount();
-#endif
-	size_t readLen = len;
-	size_t filePtrPos = m_fileStream.tellg();
-	if (filePtrPos + len > m_len)
-	{
-		readLen = m_len - filePtrPos;
-		m_fileStream.read(p, readLen);
-	}
-	else
-		m_fileStream.read(p, len);
-	
-#ifdef TIME_TEST
-	DWORD time_diff = GetTickCount() - time_beg;
-	m_debugFileStream << "readNextBytes " << time_diff << endl;
-#endif
-
-	return readLen;
 }
 
 
