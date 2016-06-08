@@ -8,7 +8,6 @@
 #include <Windows.h>
 #include <iomanip>
 #include "H264PublicDef.h"
-using namespace std;
 
 //#define TIME_TEST // 统计每个函数的运行时间，测试用
 
@@ -24,7 +23,7 @@ public:
 	 * 返回值:	ifstream& 
 	 * 参数: 	const string & fileName
 	 */
-	ifstream& getOpenFile(const string &fileName);
+	std::ifstream& getOpenFile(const std::string &fileName);
 
 	/**
 	 * 描述:	关闭文件
@@ -135,13 +134,6 @@ public:
 	 */
 	STATUS ueDecode(char *egcData, size_t len, UINT32 *codeNum, unsigned int *egcSize);		///< 解码无符号整型指数哥伦布编码
 
-	/**
-	 * 描述:	读取接下来的len个字节
-	 * 返回值:	size_t => 成功读取的字节数
-	 * 参数: 	char * p(out: 传出读取的字节数据，需要调用者分配和释放内存)
-	 * 参数: 	int len(in: 读取字节的长度)
-	 */
-	size_t readNextBytes(char *p, int len);///< 读取len个字节
 private: // 当测试完毕后，需改为protected
 	/**
 	 * 描述:	获取下一个包含I帧的Nalu(若前面有SPS,PPS或SEI则会将他们与I帧一起打包), 并将数据放入参数naluData传出，完成后文件指针指向下一个Nalu的开头(naluData为空时，不获取数据，只返回长度)
@@ -151,19 +143,27 @@ private: // 当测试完毕后，需改为protected
 	size_t nextInalu(char **naluData = NULL);
 
 	/**
+	 * 描述:	读取接下来的len个字节
+	 * 返回值:	size_t => 成功读取的字节数
+	 * 参数: 	char * p(out: 传出读取的字节数据，需要调用者分配和释放内存)
+	 * 参数: 	int len(in: 读取字节的长度)
+	 */
+	size_t readNextBytes(char *p, int len);///< 读取len个字节
+
+	/**
 	 * 描述:	检查缓冲区的数据是否还够，若不够则再次读取BUFSIZE字节的文件内容
 	 * 返回值:	STATUS 状态值( Failed => 0, Success => 1 )
 	 */
 	STATUS checkStreamBuf();
 public: // 当测试完毕后，需改为private
-	ifstream m_fileStream;	///< 文件流
+	std::ifstream m_fileStream;	///< 文件流
 	size_t m_len;	///< 流数据长度
 	char m_binPos;		///< 二进制指针的位置, 始终指向要读的下一位(8位, 从0开始, 值为0~7)
 	UINT8 m_lastByte;		///< 最后一次读的字节内容
 	PDataStream m_pStreamBuf;	///< 
 private:
 #ifdef TIME_TEST
-	ofstream m_debugFileStream; ///< 测试用
+	std::ofstream m_debugFileStream; ///< 测试用
 #endif
 };
 #endif
