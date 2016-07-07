@@ -62,7 +62,7 @@ H264AnalysisQt::~H264AnalysisQt()
 		delete [] m_pMetaData;
 		m_pMetaData = NULL;
 	}
-	m_analysis.closeFile();
+	m_analysis.CloseFile();
 }
 
 
@@ -103,14 +103,14 @@ void H264AnalysisQt::showNaluList()
 	clearData();
 	ui.curStatusLabel->setText(tr("当前选择的NALU信息: 无"));
 	// analysize
-	int pCount = 0, bCount = 0, iCount = 0, siCount = 0, spCount = 0, spsCount = 0, ppsCount = 0, seiCount = 0, audCount = 0;
-	int pSize = 0, bSize = 0, iSize = 0, siSize = 0, spSize = 0, spsSize = 0, ppsSize = 0, seiSize = 0, audSize = 0;
-	int NaluCount = 0;
-	int NaluSize = 0;
-	int NaluTotalSize = 0;
-	int startCodeLen = 0;
+	UINT32 pCount = 0, bCount = 0, iCount = 0, siCount = 0, spCount = 0, spsCount = 0, ppsCount = 0, seiCount = 0, audCount = 0;
+	UINT32 pSize = 0, bSize = 0, iSize = 0, siSize = 0, spSize = 0, spsSize = 0, ppsSize = 0, seiSize = 0, audSize = 0;
+	UINT32 NaluCount = 0;
+	UINT32 NaluSize = 0;
+	float NaluTotalSize = 0;
+	UINT32 startCodeLen = 0;
 	char *naluData = NULL;
-	m_analysis.getOpenFile(m_filePath.toStdString());
+	m_analysis.GetOpenFile(m_filePath.toStdString().c_str());
 
 	// 清零元数据
 	for (int i = 0; i < ParamNum; i++)
@@ -119,14 +119,15 @@ void H264AnalysisQt::showNaluList()
 		m_pMetaData[i].bytes = 0.0;
 	}
 
-	while (NaluSize = m_analysis.nextNalu(&naluData))
+	while (m_analysis.NextNalu(&naluData, &NaluSize) == H264Analysis::Success)
 	{
 		ui.NaluListTableWidget->insertRow(NaluCount);
 		unsigned char nextByte = 0;
 		PNalu pNalu = new Nalu;
-		startCodeLen = m_analysis.scLen(naluData);
+		if (m_analysis.GetStartCodeLength(naluData, &startCodeLen) == H264Analysis::Failed)
+			throw;
 		nextByte = naluData[startCodeLen];
-		pNalu->pos = m_analysis.m_pStreamBuf->tellgBase + m_analysis.m_pStreamBuf->pos - NaluSize;
+		pNalu->pos = m_analysis.m_pStreamBuf->tellgBase + m_analysis.m_pStreamBuf->p - m_analysis.m_pStreamBuf->beg - NaluSize;
 		pNalu->size = NaluSize;
 		m_NaluList.append(pNalu);
 		UINT32 forbidden_zero_bit = B8_VAL_BASE_R(nextByte, 0, 1);
@@ -146,24 +147,24 @@ void H264AnalysisQt::showNaluList()
 		m_pMetaData[NALU].bytes += NaluSize;
 		switch (nal_unit_type)
 		{
-		case NAL_SLICE:
-		case NAL_IDR_SLICE:
-		case NAL_AUXILIARY_SLICE:
-			if (nal_unit_type == NAL_SLICE)
+		case H264Analysis::NAL_SLICE:
+		case H264Analysis::NAL_IDR_SLICE:
+		case H264Analysis::NAL_AUXILIARY_SLICE:
+			if (nal_unit_type == H264Analysis::NAL_SLICE)
 				pNaluItem->naluTypeItem = new QTableWidgetItem(tr("NAL_SLICE"));
-			else if (nal_unit_type == NAL_IDR_SLICE)
+			else if (nal_unit_type == H264Analysis::NAL_IDR_SLICE)
 			{
 				pNaluItem->naluTypeItem = new QTableWidgetItem(tr("NAL_IDR_SLICE"));
 				m_pMetaData[IDR].num++;
 				m_pMetaData[IDR].bytes += NaluSize;
 			}
-			else if (nal_unit_type == NAL_AUXILIARY_SLICE)
+			else if (nal_unit_type == H264Analysis::NAL_AUXILIARY_SLICE)
 				pNaluItem->naluTypeItem = new QTableWidgetItem(tr("NAL_AUXILIARY_SLICE"));
 			
-			if (m_analysis.ueDecode(&naluData[egcDataPos], egcDataLen, &first_mb_in_slice, &egcSize) == H264Analysis::Failed)
-				break;
-			if (m_analysis.ueDecode(&naluData[egcDataPos + egcSize], egcDataLen - egcSize, &slice_type, &egcSize) == H264Analysis::Failed)
-				break;
+			if (m_analysis.ParseUeExpGolombCode(&naluData[egcDataPos], egcDataLen, &first_mb_in_slice, &egcSize) == H264Analysis::Failed)
+				throw;
+			if (m_analysis.ParseUeExpGolombCode(&naluData[egcDataPos + egcSize], egcDataLen - egcSize, &slice_type, &egcSize) == H264Analysis::Failed)
+				throw;
 			m_analysis.m_lastByte = 0;
 			m_analysis.m_binPos = 0;
 			pNaluItem->numberItem->setBackgroundColor(QColor("red"));
@@ -172,36 +173,36 @@ void H264AnalysisQt::showNaluList()
 
 			switch (slice_type)
 			{
-			case SLICE_TYPE_P1:
-			case SLICE_TYPE_P2:
+			case H264Analysis::SLICE_TYPE_P1:
+			case H264Analysis::SLICE_TYPE_P2:
 				pNaluItem->frameTypeItem = new QTableWidgetItem(tr("P"));
 				pNaluItem->frameTypeItem->setBackgroundColor(QColor("red"));
 				m_pMetaData[P].num++;
 				m_pMetaData[P].bytes += NaluSize;
 				break;
-			case SLICE_TYPE_B1:
-			case SLICE_TYPE_B2:
+			case H264Analysis::SLICE_TYPE_B1:
+			case H264Analysis::SLICE_TYPE_B2:
 				pNaluItem->frameTypeItem = new QTableWidgetItem(tr("B"));
 				pNaluItem->frameTypeItem->setBackgroundColor(QColor("red"));
 				m_pMetaData[B].num++;
 				m_pMetaData[B].bytes += NaluSize;
 				break;
-			case SLICE_TYPE_I1:
-			case SLICE_TYPE_I2:
+			case H264Analysis::SLICE_TYPE_I1:
+			case H264Analysis::SLICE_TYPE_I2:
 				pNaluItem->frameTypeItem = new QTableWidgetItem(tr("I"));
 				pNaluItem->frameTypeItem->setBackgroundColor(QColor("red"));
 				m_pMetaData[I].num++;
 				m_pMetaData[I].bytes += NaluSize;
 				break;
-			case SLICE_TYPE_SP1:
-			case SLICE_TYPE_SP2:
+			case H264Analysis::SLICE_TYPE_SP1:
+			case H264Analysis::SLICE_TYPE_SP2:
 				pNaluItem->frameTypeItem = new QTableWidgetItem(tr("SP"));
 				pNaluItem->frameTypeItem->setBackgroundColor(QColor("red"));
 				m_pMetaData[SP].num++;
 				m_pMetaData[SP].bytes += NaluSize;
 				break;
-			case SLICE_TYPE_SI1:
-			case SLICE_TYPE_SI2:
+			case H264Analysis::SLICE_TYPE_SI1:
+			case H264Analysis::SLICE_TYPE_SI2:
 				pNaluItem->frameTypeItem = new QTableWidgetItem(tr("SI"));
 				pNaluItem->frameTypeItem->setBackgroundColor(QColor("red"));
 				m_pMetaData[SI].num++;
@@ -213,19 +214,19 @@ void H264AnalysisQt::showNaluList()
 				break;
 			}
 			break;
-		case NAL_DPA:
+		case H264Analysis::NAL_DPA:
 			pNaluItem->naluTypeItem = new QTableWidgetItem(tr("NAL_DPA"));
 			pNaluItem->frameTypeItem = new QTableWidgetItem(tr("NULL"));
 			break;
-		case NAL_DPB:
+		case H264Analysis::NAL_DPB:
 			pNaluItem->naluTypeItem = new QTableWidgetItem(tr("NAL_DPB"));
 			pNaluItem->frameTypeItem = new QTableWidgetItem(tr("NULL"));
 			break;
-		case NAL_DPC:
+		case H264Analysis::NAL_DPC:
 			pNaluItem->naluTypeItem = new QTableWidgetItem(tr("NAL_DPC"));
 			pNaluItem->frameTypeItem = new QTableWidgetItem(tr("NULL"));
 			break;
-		case NAL_SEI:
+		case H264Analysis::NAL_SEI:
 			pNaluItem->naluTypeItem = new QTableWidgetItem(tr("NAL_SEI"));
 			pNaluItem->frameTypeItem = new QTableWidgetItem(tr("NULL"));
 
@@ -234,7 +235,7 @@ void H264AnalysisQt::showNaluList()
 			pNaluItem->frameTypeItem->setBackgroundColor(QColor("blue"));
 			pNaluItem->naluSizeItem->setBackgroundColor(QColor("blue"));
 			break;
-		case NAL_SPS:
+		case H264Analysis::NAL_SPS:
 			pNaluItem->naluTypeItem = new QTableWidgetItem(tr("NAL_SPS"));
 			pNaluItem->frameTypeItem = new QTableWidgetItem(tr("NULL"));
 
@@ -245,7 +246,7 @@ void H264AnalysisQt::showNaluList()
 			m_pMetaData[SPS].num++;
 			m_pMetaData[SPS].bytes += NaluSize;
 			break;
-		case NAL_PPS:
+		case H264Analysis::NAL_PPS:
 			pNaluItem->naluTypeItem = new QTableWidgetItem(tr("NAL_PPS"));
 			pNaluItem->frameTypeItem = new QTableWidgetItem(tr("NULL"));
 
@@ -256,23 +257,23 @@ void H264AnalysisQt::showNaluList()
 			m_pMetaData[PPS].num++;
 			m_pMetaData[PPS].bytes += NaluSize;
 			break;
-		case NAL_AUD:
+		case H264Analysis::NAL_AUD:
 			pNaluItem->naluTypeItem = new QTableWidgetItem(tr("NAL_AUD"));
 			pNaluItem->frameTypeItem = new QTableWidgetItem(tr("NULL"));
 			break;
-		case NAL_END_SEQUENCE:
+		case H264Analysis::NAL_END_SEQUENCE:
 			pNaluItem->naluTypeItem = new QTableWidgetItem(tr("NAL_END_SEQUENCE"));
 			pNaluItem->frameTypeItem = new QTableWidgetItem(tr("NULL"));
 			break;
-		case NAL_END_STREAM:
+		case H264Analysis::NAL_END_STREAM:
 			pNaluItem->naluTypeItem = new QTableWidgetItem(tr("NAL_END_STREAM"));
 			pNaluItem->frameTypeItem = new QTableWidgetItem(tr("NULL"));
 			break;
-		case NAL_FILLER_DATA:
+		case H264Analysis::NAL_FILLER_DATA:
 			pNaluItem->naluTypeItem = new QTableWidgetItem(tr("NAL_FILLER_DATA"));
 			pNaluItem->frameTypeItem = new QTableWidgetItem(tr("NULL"));
 			break;
-		case NAL_SPS_EXT:
+		case H264Analysis::NAL_SPS_EXT:
 			pNaluItem->naluTypeItem = new QTableWidgetItem(tr("NAL_SPS_EXT"));
 			pNaluItem->frameTypeItem = new QTableWidgetItem(tr("NULL"));
 			break;
@@ -318,11 +319,14 @@ void H264AnalysisQt::showNalu(QTableWidgetItem *item)
 	int filePtrPos = m_analysis.m_fileStream.tellg();
 	m_analysis.m_fileStream.seekg(nalu->pos);
 	char *naluData = new char[nalu->size];
-	if (m_analysis.readNextBytes(naluData, nalu->size) == H264Analysis::Failed)
-		throw exception();
+	UINT32 outLengthRead = 0;
+	if (m_analysis.Read(naluData, &nalu->size, &outLengthRead) == H264Analysis::Failed)
+		throw;
 	m_analysis.m_fileStream.seekg(filePtrPos);
 	h264_stream_t* h = h264_new();
-	int startCodeLen = m_analysis.scLen(naluData);
+	UINT32 startCodeLen = 0;
+	if (m_analysis.GetStartCodeLength(naluData, &startCodeLen) == H264Analysis::Failed)
+		throw;
 	read_nal_unit(h, (uint8_t*)&naluData[startCodeLen], nalu->size - startCodeLen);
 	debug_nal(h, h->nal);
 	QString str = QString("%1\t").arg(0, 8, 16, QChar('0'));

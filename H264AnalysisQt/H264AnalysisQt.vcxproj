@@ -100,7 +100,6 @@
     </ClCompile>
     <ClCompile Include="h264analysisqt.cpp" />
     <ClCompile Include="H264Analysis\H264Analysis.cpp" />
-    <ClCompile Include="H264Analysis\utilities.cpp" />
     <ClCompile Include="h264bitstream\h264_avcc.cpp" />
     <ClCompile Include="h264bitstream\h264_nal.cpp" />
     <ClCompile Include="h264bitstream\h264_sei.cpp" />
@@ -108,6 +107,7 @@
     <ClCompile Include="h264findtext.cpp" />
     <ClCompile Include="h264menunaluinfo.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="utilities.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="h264analysisqt.h">

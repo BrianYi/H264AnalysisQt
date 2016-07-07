@@ -28,8 +28,8 @@ public:
 		QTableWidgetItem *naluSizeItem;
 	} NaluItem, *PNaluItem;
 	typedef struct {
-		size_t pos;
-		size_t size;
+		UINT32 pos;
+		UINT32 size;
 		QString str;
 	} Nalu, *PNalu;
 public:
