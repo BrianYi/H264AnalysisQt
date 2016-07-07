@@ -8,8 +8,8 @@ H264AnalysisQt::H264AnalysisQt(QWidget *parent)
 {
 	ui.setupUi(this);
 
-	m_filePath = "../movie/500MTest.h264";
-	ui.fileRouteLineEdit->setText(m_filePath);
+	m_filePath = "";
+	//ui.fileRouteLineEdit->setText(m_filePath);
 	ui.NaluListTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers); /// 设置不可编辑
 	ui.NaluListTableWidget->setSelectionBehavior(QAbstractItemView::SelectRows); /// 设置单击选中整行 
 	ui.NaluListTableWidget->setSelectionMode(QAbstractItemView::SingleSelection); /// 设置只能选中单行
@@ -18,26 +18,49 @@ H264AnalysisQt::H264AnalysisQt(QWidget *parent)
 	ui.curStatusLabel->setText(tr("当前选择的NALU信息: 无"));
 	ui.NaluShowBinaryLabel->setText("            00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F\n");
 	ui.NaluShowInfoLabel->setText("NALU信息");
-	m_menuNaluInfo = new MenuNaluInfo(this);
-	connect(ui.fileRoutePushButton, &QPushButton::clicked, this, [=](){
+	m_h264MenuNaluInfo = new h264menunaluinfo(this);
+	m_h264FindText = new h264findtext(this);
+	m_pMetaData = new MetaData[ParamNum];
+
+	strcpy(m_pMetaData[NALU].name, "NALU");
+	strcpy(m_pMetaData[P].name, "p");
+	strcpy(m_pMetaData[B].name, "B");
+	strcpy(m_pMetaData[I].name, "I");
+	strcpy(m_pMetaData[SI].name, "SI");
+	strcpy(m_pMetaData[SP].name, "SP");
+	strcpy(m_pMetaData[SPS].name, "SPS");
+	strcpy(m_pMetaData[PPS].name, "PPS");
+	strcpy(m_pMetaData[IDR].name, "IDR");
+
+	connect(ui.openFileAction, &QAction::triggered, this, [=](){
 		m_filePath = QFileDialog::getOpenFileName(this, "选择H264文件路径");
 		if (!m_filePath.isEmpty())
-			ui.fileRouteLineEdit->setText(m_filePath);
+		{
+			this->setWindowTitle("H264AnalysisQt(打开：" + m_filePath + ")");
+			showNaluList();
+		}
 	});
-	connect(ui.startPushButton, &QPushButton::clicked, this, &H264AnalysisQt::showNaluList);
-	connect(ui.closePushButton, &QPushButton::clicked, this, &H264AnalysisQt::close);
+	connect(ui.exitAction, &QAction::triggered, this, &exit);
 	connect(ui.NaluListTableWidget, &QTableWidget::itemDoubleClicked, this, &H264AnalysisQt::showNalu);
-	connect(ui.actionNALU, &QAction::triggered, this->m_menuNaluInfo, &MenuNaluInfo::show);
+	connect(ui.naluInfoAction, &QAction::triggered, this->m_h264MenuNaluInfo, &h264menunaluinfo::showMenuNaluInfo);
+	connect(this, &H264AnalysisQt::msgUpdateH264MenuNaluInfo, this->m_h264MenuNaluInfo, &h264menunaluinfo::dealUpdateH264MenuNaluInfo);
+	connect(ui.findAction, &QAction::triggered, this->m_h264FindText, &h264findtext::show);
+	
 }
 
 H264AnalysisQt::~H264AnalysisQt()
 {
 	clearData();
-	if (m_menuNaluInfo)
+	if (m_h264MenuNaluInfo)
 	{
-		m_menuNaluInfo->destroyed();
-		delete m_menuNaluInfo;
-		m_menuNaluInfo = NULL;
+		m_h264MenuNaluInfo->destroyed();
+		delete m_h264MenuNaluInfo;
+		m_h264MenuNaluInfo = NULL;
+	}
+	if (m_pMetaData)
+	{
+		delete [] m_pMetaData;
+		m_pMetaData = NULL;
 	}
 	m_analysis.closeFile();
 }
@@ -88,7 +111,15 @@ void H264AnalysisQt::showNaluList()
 	int startCodeLen = 0;
 	char *naluData = NULL;
 	m_analysis.getOpenFile(m_filePath.toStdString());
-	while (NaluSize = m_analysis.nextNalu((char**)(&naluData)))
+
+	// 清零元数据
+	for (int i = 0; i < ParamNum; i++)
+	{
+		m_pMetaData[i].num = 0;
+		m_pMetaData[i].bytes = 0.0;
+	}
+
+	while (NaluSize = m_analysis.nextNalu(&naluData))
 	{
 		ui.NaluListTableWidget->insertRow(NaluCount);
 		unsigned char nextByte = 0;
@@ -111,6 +142,8 @@ void H264AnalysisQt::showNaluList()
 		PNaluItem pNaluItem = new NaluItem;
 		pNaluItem->numberItem = new QTableWidgetItem(QString::number(NaluCount));
 		pNaluItem->naluSizeItem = new QTableWidgetItem(QString::number(NaluSize));
+		m_pMetaData[NALU].num++;
+		m_pMetaData[NALU].bytes += NaluSize;
 		switch (nal_unit_type)
 		{
 		case NAL_SLICE:
@@ -119,7 +152,11 @@ void H264AnalysisQt::showNaluList()
 			if (nal_unit_type == NAL_SLICE)
 				pNaluItem->naluTypeItem = new QTableWidgetItem(tr("NAL_SLICE"));
 			else if (nal_unit_type == NAL_IDR_SLICE)
+			{
 				pNaluItem->naluTypeItem = new QTableWidgetItem(tr("NAL_IDR_SLICE"));
+				m_pMetaData[IDR].num++;
+				m_pMetaData[IDR].bytes += NaluSize;
+			}
 			else if (nal_unit_type == NAL_AUXILIARY_SLICE)
 				pNaluItem->naluTypeItem = new QTableWidgetItem(tr("NAL_AUXILIARY_SLICE"));
 			
@@ -139,27 +176,36 @@ void H264AnalysisQt::showNaluList()
 			case SLICE_TYPE_P2:
 				pNaluItem->frameTypeItem = new QTableWidgetItem(tr("P"));
 				pNaluItem->frameTypeItem->setBackgroundColor(QColor("red"));
-
+				m_pMetaData[P].num++;
+				m_pMetaData[P].bytes += NaluSize;
 				break;
 			case SLICE_TYPE_B1:
 			case SLICE_TYPE_B2:
 				pNaluItem->frameTypeItem = new QTableWidgetItem(tr("B"));
 				pNaluItem->frameTypeItem->setBackgroundColor(QColor("red"));
+				m_pMetaData[B].num++;
+				m_pMetaData[B].bytes += NaluSize;
 				break;
 			case SLICE_TYPE_I1:
 			case SLICE_TYPE_I2:
 				pNaluItem->frameTypeItem = new QTableWidgetItem(tr("I"));
 				pNaluItem->frameTypeItem->setBackgroundColor(QColor("red"));
+				m_pMetaData[I].num++;
+				m_pMetaData[I].bytes += NaluSize;
 				break;
 			case SLICE_TYPE_SP1:
 			case SLICE_TYPE_SP2:
 				pNaluItem->frameTypeItem = new QTableWidgetItem(tr("SP"));
 				pNaluItem->frameTypeItem->setBackgroundColor(QColor("red"));
+				m_pMetaData[SP].num++;
+				m_pMetaData[SP].bytes += NaluSize;
 				break;
 			case SLICE_TYPE_SI1:
 			case SLICE_TYPE_SI2:
 				pNaluItem->frameTypeItem = new QTableWidgetItem(tr("SI"));
 				pNaluItem->frameTypeItem->setBackgroundColor(QColor("red"));
+				m_pMetaData[SI].num++;
+				m_pMetaData[SI].bytes += NaluSize;
 				break;
 			default:
 				pNaluItem->frameTypeItem = new QTableWidgetItem(tr("DON'T KNOW"));
@@ -196,6 +242,8 @@ void H264AnalysisQt::showNaluList()
 			pNaluItem->naluTypeItem->setBackgroundColor(QColor("yellow"));
 			pNaluItem->frameTypeItem->setBackgroundColor(QColor("yellow"));
 			pNaluItem->naluSizeItem->setBackgroundColor(QColor("yellow"));
+			m_pMetaData[SPS].num++;
+			m_pMetaData[SPS].bytes += NaluSize;
 			break;
 		case NAL_PPS:
 			pNaluItem->naluTypeItem = new QTableWidgetItem(tr("NAL_PPS"));
@@ -205,6 +253,8 @@ void H264AnalysisQt::showNaluList()
 			pNaluItem->naluTypeItem->setBackgroundColor(QColor("green"));
 			pNaluItem->frameTypeItem->setBackgroundColor(QColor("green"));
 			pNaluItem->naluSizeItem->setBackgroundColor(QColor("green"));
+			m_pMetaData[PPS].num++;
+			m_pMetaData[PPS].bytes += NaluSize;
 			break;
 		case NAL_AUD:
 			pNaluItem->naluTypeItem = new QTableWidgetItem(tr("NAL_AUD"));
@@ -243,6 +293,8 @@ void H264AnalysisQt::showNaluList()
 		NaluCount++;
 	}
 	ui.NaluListTableWidget->setRowCount(NaluCount);
+
+	emit msgUpdateH264MenuNaluInfo(m_pMetaData, ParamNum);
 }
 
 
@@ -291,4 +343,10 @@ void H264AnalysisQt::showNalu(QTableWidgetItem *item)
 	ui.NaluShowBinaryTextEdit->setText(nalu->str);
 	delete [] naluData;
 	h264_free(h);
+}
+
+void H264AnalysisQt::dealFindText( QByteArray findTxt, bool isContinueFindNext, h264findtext::FindDirection findDirection )
+{
+
+	return ;
 }

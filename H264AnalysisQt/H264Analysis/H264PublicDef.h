@@ -52,17 +52,32 @@ typedef struct {
 	unsigned int tellgBase;	///< 缓冲区块在文件流中的位置
 } DataStream, *PDataStream;	
 
-//
-// SPS结构
-// 
-typedef struct {
-	unsigned char profile_idc;
-	bool constraint_set0_flag;
-	/**
-	 * 未完成
-	 */
-}SPS, *PSPS;
 
+typedef struct MetaData{
+	MetaData() 
+	{ 
+		strcpy(name,"NONE");
+		num = 0; 
+		bytes = 0.0;
+	};
+	char name[20];
+	unsigned int num;
+	float bytes;
+}MetaData,*PMetaData;
+
+enum 
+{
+	NALU = 0,
+	P = 1,
+	B = 2,
+	I = 3,
+	SI = 4,
+	SP = 5,
+	SPS = 6,
+	PPS = 7,
+	IDR = 8,
+	ParamNum = 9
+};
 
 //
 // 字节位颠倒(如: 0011 0001 => 1000 1100)

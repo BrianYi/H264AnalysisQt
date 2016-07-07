@@ -6,7 +6,8 @@
 #include "ui_h264analysisqt.h"
 #include "H264Analysis/H264Analysis.h"
 #include "h264bitstream/h264_stream.h"
-#include "menunaluinfo.h"
+#include "h264menunaluinfo.h"
+#include "h264findtext.h"
 #include <QString>
 #include <QTableWidgetItem>
 #include <QFileDialog>
@@ -38,13 +39,18 @@ public:
 public slots:
 	void showNaluList();
 	void showNalu(QTableWidgetItem *item);
+	void dealFindText(QByteArray findTxt, bool isContinueFindNext, h264findtext::FindDirection findDirection);
+signals:
+	void msgUpdateH264MenuNaluInfo(PMetaData pMetaData, unsigned int num);
 private:
 	Ui::H264AnalysisQtClass ui;
 	QString m_filePath;
 	H264Analysis m_analysis;
 	QList<PNalu> m_NaluList;
 	QLabel m_statusLabel;
-	MenuNaluInfo *m_menuNaluInfo;
+	h264menunaluinfo *m_h264MenuNaluInfo;
+	h264findtext *m_h264FindText;
+	PMetaData m_pMetaData;
 };
 
 #endif // H264ANALYSISQT_H

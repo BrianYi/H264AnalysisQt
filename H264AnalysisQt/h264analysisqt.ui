@@ -18,46 +18,6 @@
     <item row="0" column="0">
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
-        <item>
-         <spacer name="horizontalSpacer_3">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-        <item>
-         <widget class="QPushButton" name="fileRoutePushButton">
-          <property name="text">
-           <string>文件路径</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="fileRouteLineEdit"/>
-        </item>
-        <item>
-         <spacer name="horizontalSpacer_2">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-       </layout>
-      </item>
-      <item>
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
          <widget class="QGroupBox" name="NaluListGroupBox">
@@ -237,20 +197,6 @@
           </property>
          </spacer>
         </item>
-        <item>
-         <widget class="QPushButton" name="startPushButton">
-          <property name="text">
-           <string>开始</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="closePushButton">
-          <property name="text">
-           <string>关闭</string>
-          </property>
-         </widget>
-        </item>
        </layout>
       </item>
      </layout>
@@ -270,13 +216,49 @@
     <property name="title">
      <string>菜单</string>
     </property>
-    <addaction name="actionNALU"/>
+    <addaction name="openFileAction"/>
+    <addaction name="naluInfoAction"/>
+    <addaction name="exitAction"/>
+   </widget>
+   <widget class="QMenu" name="edit">
+    <property name="title">
+     <string>编辑</string>
+    </property>
+    <addaction name="findAction"/>
    </widget>
    <addaction name="menu"/>
+   <addaction name="edit"/>
   </widget>
-  <action name="actionNALU">
+  <action name="naluInfoAction">
    <property name="text">
     <string>NALU总信息</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
+   </property>
+  </action>
+  <action name="openFileAction">
+   <property name="text">
+    <string>打开</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="exitAction">
+   <property name="text">
+    <string>退出</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+X</string>
+   </property>
+  </action>
+  <action name="findAction">
+   <property name="text">
+    <string>查找</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
    </property>
   </action>
  </widget>

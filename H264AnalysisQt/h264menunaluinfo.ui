@@ -1,19 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>h264MenuNaluInfo</class>
- <widget class="QMainWindow" name="h264MenuNaluInfo">
+ <class>h264menunaluinfo</class>
+ <widget class="QMainWindow" name="h264menunaluinfo">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>320</width>
     <height>300</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>h264MenuNaluInfo</string>
+   <string>h264menunaluinfo</string>
   </property>
-  <widget class="QWidget" name="centralWidget"/>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="QTableWidget" name="naluTableWidget">
+      <property name="columnCount">
+       <number>3</number>
+      </property>
+      <attribute name="verticalHeaderVisible">
+       <bool>false</bool>
+      </attribute>
+      <column>
+       <property name="text">
+        <string>名称</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>数量</string>
+       </property>
+      </column>
+      <column>
+       <property name="text">
+        <string>大小(MB)</string>
+       </property>
+      </column>
+     </widget>
+    </item>
+   </layout>
+  </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>

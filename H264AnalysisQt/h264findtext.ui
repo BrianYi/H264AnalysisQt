@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>h264FindText</class>
- <widget class="QMainWindow" name="h264FindText">
+ <class>h264findtext</class>
+ <widget class="QMainWindow" name="h264findtext">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>404</width>
-    <height>118</height>
+    <width>400</width>
+    <height>115</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>查找</string>
+   <string>h264findtext</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -20,7 +20,7 @@
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout">
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
           <item>
            <widget class="QLabel" name="findLabel">
             <property name="text">
@@ -42,7 +42,7 @@
            <item>
             <layout class="QHBoxLayout" name="horizontalLayout_4">
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_2">
+              <layout class="QHBoxLayout" name="horizontalLayout_6">
                <item>
                 <widget class="QRadioButton" name="upRadioButton">
                  <property name="text">
