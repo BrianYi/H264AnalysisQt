@@ -252,12 +252,6 @@ public: // 当测试完毕后，需改为protected
 	// 返回值:	UINT32
 	UINT32 NaluCount();
 public: // 当测试完毕后，需改为private
-// 	std::ifstream m_fileStream;	///< 文件流
-// 	size_t m_len;	///< 流数据长度
-// 	char m_binPos;		///< 二进制指针的位置, 始终指向要读的下一位(8位, 从0开始, 值为0~7)
-// 	UINT8 m_lastByte;		///< 最后一次读的字节内容
-// 	PDataStream m_pStreamBuf;	///< 
-
 	std::ifstream m_fileStream;	///< 文件流
 	char *m_pFilePath;			///< 文件名字
 	UINT32 m_fileLen;			///< 流数据长度
