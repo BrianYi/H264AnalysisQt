@@ -43,13 +43,9 @@ ui_*.h
 *.vcxproj.user
 *.exe
 *.opensdf
-*.sln
 *.exp
 *.pdb
 *.lib
 *.dll
 
-
 movie
-Debug
-Release

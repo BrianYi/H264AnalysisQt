@@ -1,3 +1,3 @@
 # H264AnalysisQt
-A interface program which is implemented by using H264Analysis and Qt5.4.1 API.
+An interface program which is implemented by using H264Analysis and Qt5.4.1 API.
 There are a lot of things to do...
