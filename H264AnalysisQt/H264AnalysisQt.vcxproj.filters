@@ -50,9 +50,6 @@
     <ClCompile Include="GeneratedFiles\qrc_h264analysisqt.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
-    <ClCompile Include="H264Analysis\H264Analysis.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="h264bitstream\h264_avcc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -86,6 +83,9 @@
     <ClCompile Include="utilities.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="H264Analysis\H264Analysis.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="h264analysisqt.h">
@@ -114,9 +114,6 @@
     <ClInclude Include="GeneratedFiles\ui_h264analysisqt.h">
       <Filter>Generated Files</Filter>
     </ClInclude>
-    <ClInclude Include="H264Analysis\H264Analysis.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="H264Analysis\H264PublicDef.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -137,6 +134,9 @@
     </ClInclude>
     <ClInclude Include="GeneratedFiles\ui_h264menunaluinfo.h">
       <Filter>Generated Files</Filter>
+    </ClInclude>
+    <ClInclude Include="H264Analysis\H264Analysis.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
